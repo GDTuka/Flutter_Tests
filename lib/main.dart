@@ -1,37 +1,83 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
 
-void main() => runApp(MaterialApp(
-  theme: ThemeData(
-      primaryColor: Colors.white
-  ),
-  initialRoute: '/',
-  routes: {
-    '/': (context) => Home(),
-  },
-));
+import 'package:flutter/services.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-  @override
-  _HomeState createState() => _HomeState();
+void main() {
+  runApp(MyApp());
 }
 
-class _HomeState extends State<Home> {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: DefaultAssetBundle.of(context).loadString('asset/DB.json'),
-      builder: (context,snapshot){
-        var mydata = json.decode(snapshot.data.toString());
-        return Scaffold(
-              body:Center(
-                child: Text(mydata["name"]),
-              )
-        );
-      },
+    return MaterialApp(
+      // Hide the debug banner
+      debugShowCheckedModeBanner: false,
+      title: 'Kindacode.com',
+      home: HomePage(),
     );
   }
 }
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List _items = [];
+
+  // Fetch content from the json file
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('DB.json');
+    final data = await json.decode(response);
+    setState(() {
+      _items = data["items"];
+    });
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'JsonTest',
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          children: [
+            ElevatedButton(
+              child: Text('Load Data'),
+              onPressed: readJson,
+            ),
+
+            // Display the data loaded from sample.json
+            _items.length > 0
+                ? Expanded(
+              child: ListView.builder(
+                itemCount: _items.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: EdgeInsets.all(10),
+                    child: ListTile(
+                      leading: Text(_items[index]["id"]),
+                      title: Text(_items[index]["name"]),
+                      subtitle: Text(_items[index]["description"]),
+                    ),
+                  );
+                },
+              ),
+            )
+                : Container()
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// записать в файл информацию
+// достать из файла информацию
+// записать в файл класс
